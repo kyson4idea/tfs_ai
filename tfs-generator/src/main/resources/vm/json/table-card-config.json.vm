@@ -1,0 +1,77 @@
+{
+  "api": {
+    "list": {
+      "url": "/${moduleName}/${businessName}/list",
+      "method": "get"
+    },
+    "rmv": {
+      "url": "/${moduleName}/${businessName}",
+      "method": "delete"
+    }
+  },
+  "tableColumns": [
+      #foreach ($column in $columns)
+          #if ($column.list)
+              #parse("vm/json/common.vm")
+            {
+              "key": "${fieldKey}",
+              "name": "${comment}",
+                #if ($column.htmlType == "datetime")
+                  "attr": ${attr},
+                #end
+              "fieldType": "${fieldType}",
+              "valueOptions": [],
+                #if ($columnDictValue != "")
+                  "dict": "${columnDictValue}"
+                #end
+            },
+          #end
+      #end
+    {
+      "key": "operator",
+      "name": "操作",
+      "fieldType": "Operator",
+      "btnList": [
+        {
+          "key": "ModifyItem",
+          "name": "修改",
+          "theme": "text"
+        },
+        {
+          "key": "DeleteItem",
+          "name": "删除",
+          "theme": "text"
+        }
+      ],
+    }
+  ],
+#set($tableRowKey = "")
+#foreach ($column in $columns)
+    #if ($column.pk)
+        #set($tableRowKey = $column.javaField)
+            #break;
+    #end
+#end
+  "tableRowKey": "${tableRowKey}",
+  "selectionMode": "multiple",
+  "tableHeaderBtns": [
+    {
+      "key": "TopAddItem",
+      "name": "新增",
+      "theme": "primary"
+    },
+    {
+      "key": "TopModifyItem",
+      "name": "修改",
+      "theme": "primary",
+      "relationSelectionMode": "single"
+    },
+    {
+      "key": "BatchDelete",
+      "name": "删除",
+      "theme": "danger",
+      "relationSelectionMode": "multiple"
+    }
+  ],
+  "tableAttrs": {}
+}

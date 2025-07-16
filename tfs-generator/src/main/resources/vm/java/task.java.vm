@@ -1,0 +1,71 @@
+package ${packageName};
+
+import com.smy.tfs.api.dto.base.Response;
+import com.smy.tfs.api.dto.dynamic.TicketDataStdDto;
+import com.smy.tfs.api.dto.dynamic.TicketFormItemStdDto;
+import com.smy.tfs.api.enums.BizResponseEnums;
+import com.smy.tfs.openapi.service.ITicketDataServiceWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * ${projectName} 工单任务示例类
+ *
+ * @author ${author}
+ * @date ${datetime}
+ */
+@Component
+public class ${taskFileName} implements
+
+CommandLineRunner {
+    @Autowired
+    private ITicketDataServiceWrapper ticketDataServiceWrapper;
+
+    /**
+     * 创建工单任务
+     */
+    @Override
+    public void run (String...args) throws Exception {
+        //步骤1：动态获取工单号
+        //Response<String> applyIdRes = ticketDataServiceWrapper.getTicketApplyId("${appId}"); //调用业务的APPID
+        //if (applyIdRes.getEnum() != BizResponseEnums.SUCCESS) {
+        //    System.out.println("get apply id failed");
+        //    return;
+        //}
+        //System.out.println("Get ApplyId Success，Id： ======> " + applyIdRes.getData());
+
+        //步骤2：创建工单
+        TicketDataStdDto ticketDataStdDto = new TicketDataStdDto();
+        ticketDataStdDto.setApplyId("${applyId}");// 页面工单号
+        //ticketDataStdDto.setApplyId(applyIdRes.getData());// 动态工单号
+        ticketDataStdDto.setTicketTemplateId("${ticketTemplateId}");// 工单模板ID
+
+        List<TicketFormItemStdDto> formItems = new ArrayList<>();// 工单表单内容
+        #foreach($formItem in $formItems)
+            formItems.add(new TicketFormItemStdDto("$formItem.templateId", "$formItem.value"));// $formItem.description
+        #end
+
+        //formItems.add(new TicketFormItemStdDto("公司名称", "萨摩耶")); //中文例如“公司名称”，无需提前配置
+        ticketDataStdDto.setFormItems(formItems);
+
+        //List<TicketFlowNodeStdDto> flowNodes = new ArrayList<>();// 配置指定审批人(选填)
+        //flowNodes.add(new TicketFlowNodeStdDto("123", "ldap", "o02157", "owen"));
+        //ticketDataStdDto.setFlowNodes(flowNodes);
+
+        String userType = "${userType}" ;//用户账号类型
+        String userId = "${userId}" ;//用户ID
+        String userName = "${userName}" ;//用户名称
+        Response<String> result = ticketDataServiceWrapper.createTicket(ticketDataStdDto, userType, userId, userName);// 调用创建工单接口
+        if (result.getEnum() != BizResponseEnums.SUCCESS) {
+            System.out.println("create ticket failed");
+            return;
+        }
+        System.out.println("Create Ticket Success, Id: ======> " + result.getData());
+    }
+}
+
+

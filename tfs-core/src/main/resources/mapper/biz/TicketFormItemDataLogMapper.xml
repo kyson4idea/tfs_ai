@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketFormItemDataLogMapper">
+
+    <!-- 批量检查记录是否存在 -->
+    <select id="batchCheckOldItemLogExists" resultType="java.lang.String">
+        SELECT DISTINCT template_id
+        FROM ticket_form_item_data_log
+        WHERE
+        <foreach collection="itemLosList" item="item" separator=" OR ">
+            (
+            ticket_data_id = #{item.ticketDataId}
+            AND item_type = #{item.itemType}
+            AND item_label = #{item.itemLabel}
+            AND template_id = #{item.templateId}
+            )
+        </foreach>
+    </select>
+
+</mapper>

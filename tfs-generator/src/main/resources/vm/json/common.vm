@@ -1,0 +1,41 @@
+#set($htmlType = $column.htmlType)
+#set($javaType = $column.javaType)
+#set($columnDictValue = $column.dictType)
+#set($fieldKey = $column.javaField)
+#set($attr = {})
+#set($AttrName = $column.javaField.substring(0,1).toUpperCase() + ${column.javaField.substring(1)})
+#set($comment = $column.columnComment)
+#set($parentheseIndex = $comment.indexOf("（"))
+#if ($parentheseIndex != -1)
+    #set($comment = $comment.substring(0, $parentheseIndex))
+#elseif ("$!comment" == "")
+    #set($comment = "comment")
+#end
+#set($fieldType = "Text")
+#if ($htmlType == "datetime")
+    #set($fieldType = "Date")
+    #set($attrStr = '{ "type": "datetime", "format": "yyyy-MM-dd HH:mm:ss", "valueFormat": "yyyy-MM-dd HH:mm:ss" }')
+    #set($attr = $attrStr.replaceAll('"', '\"'))
+#elseif ($htmlType == "select")
+    #set($fieldType = "Select")
+#elseif ($htmlType == "checkbox")
+    #set($fieldType = "Checkbox")
+#elseif ($htmlType == "radio")
+    #set($fieldType = "Radio")
+#elseif ($htmlType == "textarea")
+    #set($fieldType = "TextArea")
+#elseif ($htmlType == "input")
+    #if ($javaType == "String")
+        #set($fieldType = "Text")
+    #else
+        #set($fieldType = "Number")
+    #end
+#else
+    #set($fieldType = "Text")
+#end
+#set($isModifyHide = 0)
+#if ($column.insert || $column.edit)
+    #if (!$column.edit)
+        #set($isModifyHide = 1)
+    #end
+#end

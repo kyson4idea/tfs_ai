@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketDataMapper">
+
+    <sql id="Base_Select_List_Column">
+        td.id, td.template_id, td.app_id, td.ticket_status, td.ticket_name, td.apply_user, td.create_time,
+        td.ticket_finish_time, td.current_deal_users, td.wx_chat_group_id, td.ticket_msg_arrive_type,td.tags,
+        td.extend1, td.extend2, td.extend3, td.extend4, td.extend5, td.extend6, td.extend7, td.extend8,
+        td.extend9,td.extend10,update_time
+    </sql>
+
+    <select id="selectTicketDataList" resultType="com.smy.tfs.api.dto.TicketDataListResponseDto">
+        select <include refid="Base_Select_List_Column" />
+        from ticket_data td
+        <include refid="Base_Select_List_Cust" />
+        order by td.update_time desc
+    </select>
+
+    <select id="selectTicketDataCount" resultType="java.lang.Integer">
+        select count(1)
+        from ticket_data td
+        <include refid="Base_Select_List_Cust" />
+
+    </select>
+
+    <sql id="Base_Select_List_Cust">
+        <where>
+            td.delete_time IS NULL
+            <!-- 所属应用 -->
+            <if test="ticketDataDto.appId != null and ticketDataDto.appId != ''">
+                and td.app_id = #{ticketDataDto.appId}
+            </if>
+            <if test="ticketDataDto.appIdList != null and ticketDataDto.appIdList.size() > 0">
+                and td.app_id in
+                <foreach collection="ticketDataDto.appIdList" item="appId" open="(" separator="," close=")">
+                    #{appId}
+                </foreach>
+            </if>
+            <!-- 工单类型 -->
+            <if test="ticketDataDto.templateId != null and ticketDataDto.templateId != ''">
+                and td.template_id = #{ticketDataDto.templateId}
+            </if>
+            <if test="ticketDataDto.templateIdList != null and ticketDataDto.templateIdList.size() > 0">
+                and td.template_id in
+                <foreach collection="ticketDataDto.templateIdList" item="templateId" open="(" separator="," close=")">
+                    #{templateId}
+                </foreach>
+            </if>
+            <if test="ticketDataDto.ticketStatusStr != null and ticketDataDto.ticketStatusStr != ''">
+                and td.ticket_status = #{ticketDataDto.ticketStatusStr}
+            </if>
+            <if test="ticketDataDto.ticketStatusStrList != null and ticketDataDto.ticketStatusStrList.size() > 0">
+                and td.ticket_status in
+                <foreach collection="ticketDataDto.ticketStatusStrList" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <!-- 创建时间 -->
+            <if test="ticketDataDto.createStartTime != null and ticketDataDto.createEndTime != null">
+                and td.create_time between #{ticketDataDto.createStartTime} and #{ticketDataDto.createEndTime}
+            </if>
+            <!-- 更新时间 -->
+            <if test="ticketDataDto.updateStartTime != null and ticketDataDto.updateEndTime != null">
+                and td.update_time between #{ticketDataDto.updateStartTime} and #{ticketDataDto.updateEndTime}
+            </if>
+            <!-- 完成时间 -->
+            <if test="ticketDataDto.finishStartTime != null and ticketDataDto.finishEndTime != null">
+                and td.ticket_finish_time between #{ticketDataDto.finishStartTime} and #{ticketDataDto.finishEndTime}
+            </if>
+            <!-- 工单创建人 -->
+            <if test="ticketDataDto.applyUser != null and ticketDataDto.applyUser != ''">
+                and td.apply_user like concat('%', #{ticketDataDto.applyUser}, '%')
+            </if>
+            <!-- 工单当前处理人 -->
+            <if test="ticketDataDto.currentDealUser != null and ticketDataDto.currentDealUser != ''">
+                and td.current_deal_users like concat('%', #{ticketDataDto.currentDealUser}, '%')
+            </if>
+            <!-- 工单id/工单名称 -->
+            <if test="ticketDataDto.searchValue != null and ticketDataDto.searchValue != ''">
+                and (td.id like concat('%', #{ticketDataDto.searchValue}, '%')
+                or td.ticket_name like concat('%', #{ticketDataDto.searchValue}, '%')
+                or td.tags like concat('%', #{ticketDataDto.searchValue}, '%'))
+            </if>
+
+            <!-- 我创建的 -->
+            <if test="ticketDataDto.createdByMe != null and ticketDataDto.createdByMe and
+                        ticketDataDto.currentUserInfo != null and ticketDataDto.currentUserInfo != ''">
+                and td.apply_user like concat('%', #{ticketDataDto.currentUserInfo}, '%')
+            </if>
+            <!-- 与我处理相关的 -->
+            <if test="ticketDataDto.needHandleByMe != null and ticketDataDto.needHandleByMe and
+                        ticketDataDto.currentUserInfo != null and ticketDataDto.currentUserInfo != ''">
+                and (  td.current_deal_users like concat('%', #{ticketDataDto.currentUserInfo}, '%')
+                or td.current_done_users like concat('%', #{ticketDataDto.currentUserInfo}, '%')
+                or td.current_cc_users like concat('%', #{ticketDataDto.currentUserInfo}, '%') )
+            </if>
+            <if test="ticketDataDto.ticketStatusForUserStr != null and ticketDataDto.ticketStatusForUserStr != '' and
+                      ticketDataDto.currentUserInfo != null and ticketDataDto.currentUserInfo != '' and
+                      ticketDataDto.ticketStatusForUserStr == 'WAITING_HANDLE'">
+                and td.ticket_status = 'APPLYING'
+                and td.current_deal_users like concat('%', #{ticketDataDto.currentUserInfo}, '%')
+            </if>
+            <if test="ticketDataDto.ticketStatusForUserStr != null and ticketDataDto.ticketStatusForUserStr != '' and
+                      ticketDataDto.currentUserInfo != null and ticketDataDto.currentUserInfo != '' and
+                      ticketDataDto.ticketStatusForUserStr == 'HANDLED'">
+                and td.current_done_users like concat('%', #{ticketDataDto.currentUserInfo}, '%')
+            </if>
+            <if test="ticketDataDto.ticketStatusForUserStr != null and ticketDataDto.ticketStatusForUserStr != '' and
+                      ticketDataDto.currentUserInfo != null and ticketDataDto.currentUserInfo != '' and
+                      ticketDataDto.ticketStatusForUserStr == 'HAS_CC'">
+                and td.current_cc_users like concat('%', #{ticketDataDto.currentUserInfo}, '%')
+            </if>
+            <!-- 工单状态 -->
+            and td.ticket_status  not in ('INIT', 'DRAFT') <!-- 排除初始化和草稿中工单 -->
+            <!-- 扩展字段 -->
+            <if test="ticketDataDto.extend1 != null and ticketDataDto.extend1 != ''">
+                and td.extend1 like concat('%', #{ticketDataDto.extend1}, '%')
+            </if>
+            <if test="ticketDataDto.extend2 != null and ticketDataDto.extend2 != ''">
+                and td.extend2 like concat('%', #{ticketDataDto.extend2}, '%')
+            </if>
+            <if test="ticketDataDto.extend3 != null and ticketDataDto.extend3 != ''">
+                and td.extend3 like concat('%', #{ticketDataDto.extend3}, '%')
+            </if>
+            <if test="ticketDataDto.extend4 != null and ticketDataDto.extend4 != ''">
+                and td.extend4 like concat('%', #{ticketDataDto.extend4}, '%')
+            </if>
+            <if test="ticketDataDto.extend5 != null and ticketDataDto.extend5 != ''">
+                and td.extend5 like concat('%', #{ticketDataDto.extend5}, '%')
+            </if>
+            <if test="ticketDataDto.extend6 != null and ticketDataDto.extend6 != ''">
+                and td.extend6 like concat('%', #{ticketDataDto.extend6}, '%')
+            </if>
+            <if test="ticketDataDto.extend7 != null and ticketDataDto.extend7 != ''">
+                and td.extend7 like concat('%', #{ticketDataDto.extend7}, '%')
+            </if>
+            <if test="ticketDataDto.extend8 != null and ticketDataDto.extend8 != ''">
+                and td.extend8 like concat('%', #{ticketDataDto.extend8}, '%')
+            </if>
+            <if test="ticketDataDto.extend9 != null and ticketDataDto.extend9 != ''">
+                and td.extend9 like concat('%', #{ticketDataDto.extend9}, '%')
+            </if>
+            <if test="ticketDataDto.extend10 != null and ticketDataDto.extend10 != ''">
+                and td.extend10 like concat('%', #{ticketDataDto.extend10}, '%')
+            </if>
+        </where>
+    </sql>
+</mapper>

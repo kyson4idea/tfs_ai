@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.system.mapper.SysPageRecordMapper">
+
+    <resultMap type="SysPageRecord" id="SysPageRecordResult">
+        <result property="recordId" column="record_id"/>
+        <result property="pageKey" column="page_key"/>
+        <result property="paramJson" column="param_json"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateType" column="update_type"/>
+        <result property="version" column="version"/>
+    </resultMap>
+
+    <sql id="selectSysPageRecordVo">
+        select record_id, page_key, param_json, update_by, update_time, update_type, version
+        from sys_page_record
+    </sql>
+
+    <select id="selectSysPageRecordList" parameterType="SysPageRecord" resultMap="SysPageRecordResult">
+        <include refid="selectSysPageRecordVo"/>
+        <where>
+            <if test="pageKey != null  and pageKey != ''">and page_key = #{pageKey}</if>
+            <if test="paramJson != null  and paramJson != ''">and param_json = #{paramJson}</if>
+            <if test="updateType != null ">and update_type = #{updateType}</if>
+            <if test="version != null ">and version = #{version}</if>
+        </where>
+        order by version desc
+    </select>
+
+    <select id="selectSysPageRecordByRecordId" parameterType="Long" resultMap="SysPageRecordResult">
+        <include refid="selectSysPageRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertSysPageRecord" parameterType="SysPageRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into sys_page_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pageKey != null and pageKey != ''">page_key,</if>
+            <if test="paramJson != null">param_json,</if>
+            <if test="updateBy != null">update_by,</if>
+            update_time,
+            <if test="updateType != null">update_type,</if>
+            <if test="version != null">version,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="pageKey != null and pageKey != ''">#{pageKey},</if>
+            <if test="paramJson != null">#{paramJson},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            sysdate(),
+            <if test="updateType != null">#{updateType},</if>
+            <if test="version != null">#{version},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysPageRecord" parameterType="SysPageRecord">
+        update sys_page_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="pageKey != null and pageKey != ''">page_key = #{pageKey},</if>
+            <if test="paramJson != null">param_json = #{paramJson},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateType != null">update_type = #{updateType},</if>
+            <if test="version != null">version = #{version},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteSysPageRecordByRecordId" parameterType="Long">
+        delete
+        from sys_page_record
+        where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteSysPageRecordByRecordIds" parameterType="String">
+        delete from sys_page_record where record_id in
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteSysPageRecordByPageKey" parameterType="String">
+        delete
+        from sys_page_record
+        where page_key = #{pageKey}
+    </delete>
+</mapper>

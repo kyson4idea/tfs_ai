@@ -1,0 +1,7 @@
+dubbo:
+  application:
+      name: sample-boot-provider
+      logger: slf4j
+  registry:
+    # zk地址
+    address: ${zkAddress}

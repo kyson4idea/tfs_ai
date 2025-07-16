@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketAnalysisDataMapper">
+    <resultMap id="createUserResultMap" type="java.lang.String">
+        <result column="create_by" />
+    </resultMap>
+
+    <sql id="timeRangeCreateByCount">
+        SELECT app_id, create_by, COUNT(*) AS total_count
+        FROM ticket_data td
+        <where>
+            td.delete_time IS NULL
+            <if test="ticketAnalysisQuery.appId != null and ticketAnalysisQuery.appId != ''">
+                AND td.app_id = #{ticketAnalysisQuery.appId}
+            </if>
+            <if test="ticketAnalysisQuery.startTimestamp != null and ticketAnalysisQuery.endTimestamp != null">
+                AND td.create_time BETWEEN #{ticketAnalysisQuery.startTimestamp, jdbcType=TIMESTAMP} AND #{ticketAnalysisQuery.endTimestamp, jdbcType=TIMESTAMP}
+            </if>
+        </where>
+        GROUP BY td.app_id, td.create_by
+    </sql>
+
+    <select id="countTickets" resultType="Integer">
+        SELECT COUNT(1) FROM ticket_data
+        <where>
+            <if test="appId != null and appId != ''">
+                AND app_id = #{appId}
+            </if>
+        </where>
+    </select>
+
+    <select id="countCreateUsers" resultType="Integer">
+        SELECT COUNT(DISTINCT create_by)  FROM ticket_data
+        <where>
+            <if test="appId != null and appId != ''">
+                AND app_id = #{appId}
+            </if>
+        </where>
+    </select>
+
+    <select id="countTemplates" resultType="Integer">
+        SELECT COUNT(1) FROM ticket_template
+        <where>
+            <if test="appId != null and appId != ''">
+                AND app_id = #{appId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getCreateUsers" resultMap="createUserResultMap">
+        SELECT DISTINCT create_by  FROM ticket_data
+        <where>
+            <if test="appId != null and appId != ''">
+                AND app_id = #{appId}
+            </if>
+        </where>
+    </select>
+
+    <!--  create_by_count: 创建工单人数，apply_count: 创建工单数（包含初始化、审批中、审批结束、审批驳回、撤回），applying_count: 审批中的工单数，withdraw_count: 撤回的工单数，reject_count: 审批拒绝的工单数 -->
+    <select id="getTimeRangeTicketBaseStatistics" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto$TicketBaseStatistic">
+        SELECT
+            t.app_id AS app_id,
+            COUNT(CASE WHEN t.ticket_status != "DRAFT" THEN t.id END) AS apply_count,
+            COUNT(CASE WHEN t.ticket_status = "APPLYING" THEN t.id END) AS applying_count,
+            COUNT(CASE WHEN t.ticket_status = "WITHDRAW" THEN t.id END) AS withdraw_count,
+            COUNT(CASE WHEN t.ticket_status = "REJECT" THEN t.id END) AS reject_count
+        FROM ticket_data t
+        <where>
+            <!-- 所属应用 -->
+            <if test="ticketAnalysisQuery.appId != null and ticketAnalysisQuery.appId != ''">
+                AND t.app_id = #{ticketAnalysisQuery.appId}
+            </if>
+            <!-- 时间范围 -->
+            <if test="ticketAnalysisQuery.startTimestamp != null and ticketAnalysisQuery.endTimestamp != null">
+                AND t.create_time BETWEEN #{ticketAnalysisQuery.startTimestamp, jdbcType=TIMESTAMP} AND #{ticketAnalysisQuery.endTimestamp, jdbcType=TIMESTAMP}
+            </if>
+        </where>
+        GROUP BY t.app_id
+    </select>
+
+    <select id="getTimeRangeTicketDoneCount" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto$TicketStatusCount">
+        SELECT
+            t.app_id AS app_id,
+            t.ticket_status AS ticket_status,
+            COUNT(DISTINCT t.id) AS status_count
+        FROM ticket_data t
+        WHERE
+            t.delete_time IS NULL AND t.ticket_status = "APPLY_END" AND t.update_time BETWEEN #{ticketAnalysisQuery.startTimestamp, jdbcType=TIMESTAMP} AND #{ticketAnalysisQuery.endTimestamp, jdbcType=TIMESTAMP}
+        <!-- 所属应用 -->
+        <if test="ticketAnalysisQuery.appId != null and ticketAnalysisQuery.appId != ''">
+            AND t.app_id = #{ticketAnalysisQuery.appId}
+        </if>
+        GROUP BY t.app_id
+    </select>
+
+    <select id="getTimeRangeTicketAvgEfficiency" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto$TicketAvgEfficiency">
+        SELECT
+            t.app_id AS app_id,
+            AVG(TIMESTAMPDIFF(SECOND, t.create_time, t.ticket_finish_time)) AS ticket_avg_efficiency
+        FROM ticket_data t
+        <where>
+            <!-- 所属应用 -->
+            <if test="ticketAnalysisQuery.appId != null and ticketAnalysisQuery.appId != ''">
+                AND t.app_id = #{ticketAnalysisQuery.appId}
+            </if>
+            <!-- 时间范围 -->
+            <if test="ticketAnalysisQuery.startTimestamp != null and ticketAnalysisQuery.endTimestamp != null">
+                AND t.ticket_status = "APPLY_END"
+                AND t.update_time BETWEEN #{ticketAnalysisQuery.startTimestamp, jdbcType=TIMESTAMP} AND #{ticketAnalysisQuery.endTimestamp, jdbcType=TIMESTAMP}
+            </if>
+        </where>
+        GROUP BY t.app_id
+    </select>
+
+    <select id="getTimeRangeTicketExecutorCount" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto$TicketExecutorCount">
+        SELECT
+            td.app_id,
+            COUNT(DISTINCT tfnad.deal_user_id) AS executor_count
+        FROM
+            ticket_flow_node_approve_detail tfnad
+        JOIN
+            ticket_data td ON tfnad.ticket_data_id = td.id
+        <where>
+            tfnad.delete_time IS NULL
+            <!-- 所属应用 -->
+            <if test="ticketAnalysisQuery.appId != null and ticketAnalysisQuery.appId != ''">
+                AND td.app_id = #{ticketAnalysisQuery.appId}
+            </if>
+            <!-- 时间范围 -->
+            <if test="ticketAnalysisQuery.startTimestamp != null and ticketAnalysisQuery.endTimestamp != null">
+                AND tfnad.update_time BETWEEN #{ticketAnalysisQuery.startTimestamp, jdbcType=TIMESTAMP} AND #{ticketAnalysisQuery.endTimestamp, jdbcType=TIMESTAMP}
+            </if>
+        </where>
+        GROUP BY td.app_id;
+    </select>
+
+    <!-- mysql8.0 -->
+    <select id="getTimeRangeTicketTopXCreateByVia8" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto$TicketTopXCreateBy">
+        SELECT t1.app_id AS app_id, t1.create_by AS create_by, t1.total_count AS total_count FROM (
+        SELECT t.*, ROW_NUMBER() OVER (PARTITION BY t.app_id ORDER BY t.total_count DESC) AS order_rank
+        FROM (
+        <include refid="timeRangeCreateByCount"/>
+        ) t
+        ) t1
+        WHERE t1.order_rank &lt;= #{ticketAnalysisQuery.topX}
+    </select>
+
+    <select id="getTimeRangeTicketTopXCreateBy" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto$TicketTopXCreateBy">
+        SELECT t1.app_id AS app_id, t1.create_by AS create_by, t1.total_count AS total_count
+        FROM (
+        SELECT t.*, (@row_num := IF(@prev_app_id = t.app_id, @row_num + 1, 1)) AS order_rank,
+        (@prev_app_id := t.app_id) AS dummy
+        FROM (
+        <include refid="timeRangeCreateByCount"/>
+        ) t
+        CROSS JOIN (SELECT @row_num := 0, @prev_app_id := NULL) variables
+        ORDER BY t.app_id, t.total_count DESC
+        ) t1
+        WHERE t1.order_rank &lt;= #{ticketAnalysisQuery.topX}
+    </select>
+
+    <select id="getAppTicketAnalysisData" resultType="com.smy.tfs.api.dto.TicketAnalysisDataDto">
+        SELECT
+            ta.id AS app_id,
+            ta.app_name,
+            ta.app_admin_users,
+            tad.*
+        FROM
+            ticket_app ta
+        LEFT JOIN
+            ticket_analysis_data tad ON ta.id = tad.app_id AND tad.category = #{ticketAnalysisQuery.category} AND DATE(tad.start_date) = DATE(#{ticketAnalysisQuery.startTimestamp, jdbcType=TIMESTAMP}) AND DATE(tad.end_date) = DATE(#{ticketAnalysisQuery.endTimestamp, jdbcType=TIMESTAMP})
+        WHERE
+            ta.delete_time IS NULL
+        <if test="ticketAnalysisQuery.appIds != null and ticketAnalysisQuery.appIds.size() > 0">
+            AND tad.app_id in
+            <foreach item="item" index="index" collection="ticketAnalysisQuery.appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

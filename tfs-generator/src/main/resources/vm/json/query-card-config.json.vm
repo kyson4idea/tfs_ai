@@ -1,0 +1,21 @@
+{
+  "queryFields": [
+      #foreach ($column in $columns)
+          #if ($column.query)
+              #parse("vm/json/common.vm")
+            {
+              "key": "${fieldKey}",
+              "name": "${comment}",
+                #if ($column.htmlType == "datetime")
+                  "attr": ${attr},
+                #end
+              "fieldType": "${fieldType}",
+              "valueOptions": [],
+                #if ($columnDictValue != "")
+                  "dict": "${columnDictValue}"
+                #end
+            },
+          #end
+      #end
+  ]
+}

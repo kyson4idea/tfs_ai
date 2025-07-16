@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="
+    	http://www.springframework.org/schema/beans
+    	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+    	http://dubbo.apache.org/schema/dubbo
+    	http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+    <!--不重试，避免事件重复记录，影响规则统计-->
+    <dubbo:provider retries="0" loadbalance="roundrobin">
+        <dubbo:parameter key="needEncrypt" value="${needEncrypt}"></dubbo:parameter>
+    </dubbo:provider>
+
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketAppService" ref="ticketAppServiceImpl" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketDataService" ref="ticketDataServiceImpl" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketDataServiceWrapper" ref="ticketDataServiceWrapper" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketTemplateService" ref="ticketTemplateServiceImpl" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketExportUserService" ref="ticketExportUserService" registry="registry" timeout="60000"/>
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketCreateAppService" ref="ticketCreateAppService" registry="registry" timeout="60000" />
+    <dubbo:service interface="com.smy.tfs.api.service.I7MoorExportUserService" ref="rl7MoorExportUserService" registry="registry" timeout="60000" />
+    <dubbo:service interface="com.smy.tfs.api.service.IArkMiaoDaService" ref="arkMiaoDaServiceImpl" registry="registry"/>
+
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketTestService" ref="ticketTestService" registry="registry"
+                   timeout="60000" version="1.0.0" group="tfs-boot"/>
+
+    <dubbo:service interface="com.smy.tfs.biz.service.TicketApproveCallBackService" ref="ticketApproveCallBackService" registry="registry" timeout="60000" />
+
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketCategoryServiceWrapper" ref="ticketCategoryServiceWrapper" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketTemplateServiceWrapper" ref="ticketTemplateServiceWrapper" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.api.service.ITicketDataActService" ref="ticketDataActServiceImpl" registry="registry"/>
+
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketFormItemServiceWrapper" ref="ticketFormItemServiceWrapper" registry="registry"/>
+
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketNotificationWrapper" ref="ticketNotificationWrapper" registry="registry"/>
+
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketAccountServiceWrapper" ref="ticketAccountServiceWrapper" registry="registry"/>
+    <dubbo:service interface="com.smy.tfs.openapi.service.ITicketFilesServiceWrapper" ref="ticketFilesServiceWrapper" registry="registry"/>
+
+</beans>
+

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketOriginAccountMapper">
+
+    <select id="selectOriginAccountList" resultType="com.smy.tfs.api.dbo.TicketOriginAccount">
+        select * from ticket_origin_account
+        <where>
+            delete_time is null
+            <if test="ticketOriginAccountDto.searchWord != null and ticketOriginAccountDto.searchWord != ''">
+                and (account_id like concat('%',#{ticketOriginAccountDto.searchWord},'%')
+                  or account_name like concat('%',#{ticketOriginAccountDto.searchWord},'%')
+                  or same_origin_id like concat('%',#{ticketOriginAccountDto.searchWord},'%'))
+            </if>
+            <if test="ticketOriginAccountDto.matchResult != null and ticketOriginAccountDto.matchResult != ''">
+                and match_result = #{ticketOriginAccountDto.matchResult}
+            </if>
+        </where>
+    </select>
+</mapper>

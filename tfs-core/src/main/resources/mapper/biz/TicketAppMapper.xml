@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketAppMapper">
+
+    <select id="selectTicketAppList" resultType="com.smy.tfs.api.dto.TicketAppDto">
+        select ta.id, ta.app_name ,ta.app_desc ,ta.account_type, ta.app_admin_users ,ta.delete_time ,ta.category_enabled,
+               ta.extend_enabled,
+               ta.extend_fields,
+               tad.create_by_count,
+               tad.executor_count,
+               tad.apply_count,
+               tad.done_count,
+               tad.applying_count,
+               tad.ticket_avg_efficiency
+        from ticket_app ta
+        left join ticket_analysis_data tad on ta.id = tad.app_id
+        <if test="ticketAppDto.category !=null and ticketAppDto.category != ''">
+            and tad.category = #{ticketAppDto.category}
+        </if>
+        <if test="ticketAppDto.startDateStr != null and ticketAppDto.startDateStr != ''">
+            and tad.start_date = #{ticketAppDto.startDateStr}
+        </if>
+        <if test="ticketAppDto.endDateStr != null and ticketAppDto.endDateStr != ''">
+            and tad.end_date = #{ticketAppDto.endDateStr}
+        </if>
+        <where>
+            ta.delete_time is null
+            <if test="ticketAppDto.appName!=null and ticketAppDto.appName!=''">
+                and ta.app_name like concat('%', #{ticketAppDto.appName}, '%')
+            </if>
+            <if test="ticketAppDto.searchValue!=null and ticketAppDto.searchValue!=''">
+                and (ta.app_name like concat('%', #{ticketAppDto.searchValue}, '%')
+                  or ta.id like concat('%', #{ticketAppDto.searchValue}, '%'))
+            </if>
+        </where>
+        order by ta.create_time desc
+    </select>
+    <select id="countTicketAppByIdAndName" resultType="java.lang.Integer">
+        select count(1)
+        from ticket_app
+        where (delete_time is null or delete_time is not null)
+        <if test="appId != null and appId != ''">
+            and id = #{appId}
+        </if>
+        <if test="appName != null and appName != ''">
+            and app_name = #{appName}
+        </if>
+
+    </select>
+    <select id="countTicketAppByNameExtendId" resultType="java.lang.Integer">
+        select count(1)
+        from ticket_app
+        where (delete_time is null or delete_time is not null)
+        <if test="appId != null and appId != ''">
+            and id != #{appId}
+        </if>
+        <if test="appName != null and appName != ''">
+            and app_name = #{appName}
+        </if>
+    </select>
+</mapper>

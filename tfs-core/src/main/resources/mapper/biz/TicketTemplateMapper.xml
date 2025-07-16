@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketTemplateMapper">
+
+    <select id="selectTicketTemplateList" resultType="com.smy.tfs.api.dto.TicketTemplateDto">
+        select tt.*,ta.app_name as appName
+        from ticket_template tt
+        left join ticket_app ta on tt.app_id = ta.id
+        <where>
+            tt.delete_time IS NULL and tt.ticket_status != 'INIT'
+            <if test="ticketTemplateDto.ticketName != null and ticketTemplateDto.ticketName != ''">
+                and tt.ticket_name like concat('%',#{ticketTemplateDto.ticketName},'%')
+            </if>
+            <if test="ticketTemplateDto.appId != null and ticketTemplateDto.appId != ''">
+                and tt.app_id = #{ticketTemplateDto.appId}
+            </if>
+            <if test="ticketTemplateDto.appIdList != null and ticketTemplateDto.appIdList.size() > 0">
+                and tt.app_id in
+                <foreach collection="ticketTemplateDto.appIdList" item="appId" open="(" separator="," close=")">
+                    #{appId}
+                </foreach>
+            </if>
+            <if test="ticketTemplateDto.ticketStatus != null and ticketTemplateDto.ticketStatus != ''">
+                and tt.ticket_status = #{ticketTemplateDto.ticketStatus}
+            </if>
+        </where>
+        order by tt.create_time desc
+    </select>
+    <select id="selectEnableTicketTemplateListByKey" resultType="com.smy.tfs.api.dto.TicketTemplateDto">
+        select tt.*,ta.app_name as appName,ta.create_time as appCreateTime
+        from ticket_template tt
+        left join ticket_app ta on tt.app_id = ta.id
+        <where>
+            tt.delete_time IS NULL and ta.delete_time IS NULL
+            <if test="ticketTemplateDto.searchValue != null and ticketTemplateDto.searchValue != ''">
+                and (tt.ticket_name like concat('%',#{ticketTemplateDto.searchValue},'%')
+                or tt.app_id like concat('%',#{ticketTemplateDto.searchValue},'%')
+                or ta.app_name like concat('%',#{ticketTemplateDto.searchValue},'%') )
+            </if>
+            <if test="ticketTemplateDto.ticketName != null and ticketTemplateDto.ticketName != ''">
+                and (tt.ticket_name like concat('%',#{ticketTemplateDto.ticketName},'%'))
+            </if>
+            <if test="ticketTemplateDto.appId != null and ticketTemplateDto.appId != ''">
+                and (tt.app_id like concat('%',#{ticketTemplateDto.appId},'%'))
+            </if>
+            <if test="ticketTemplateDto.appIdList != null and ticketTemplateDto.appIdList.size() > 0">
+                and tt.app_id in
+                <foreach collection="ticketTemplateDto.appIdList" item="appId" open="(" separator="," close=")">
+                    #{appId}
+                </foreach>
+            </if>
+            <if test="ticketTemplateDto.ticketStatus != null and ticketTemplateDto.ticketStatus != ''">
+                and tt.ticket_status = #{ticketTemplateDto.ticketStatus}
+            </if>
+        </where>
+        order by ta.create_time desc,tt.create_time desc
+    </select>
+</mapper>

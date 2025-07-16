@@ -1,0 +1,8 @@
+<config mode="client" enabled="true">
+    <servers>
+        <!-- Local mode for development -->
+        <!--<server ip="10.253.101.227" port="2280" http-port="8740" />-->
+        <server ip="${cat_server_ip}" port="${cat_server_tcp_port}" http-port="${cat_server_http_port}"/>
+    </servers>
+    <domain id="tfs-boot"/>
+</config>

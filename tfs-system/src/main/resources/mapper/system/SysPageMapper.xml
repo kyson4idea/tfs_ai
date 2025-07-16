@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.system.mapper.SysPageMapper">
+
+    <resultMap type="SysPage" id="SysPageResult">
+        <id property="pageId" column="page_id"/>
+        <result property="pageKey" column="page_key"/>
+        <result property="remark" column="remark"/>
+        <result property="paramJson" column="param_json"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="selectPageVo">
+        select page_id, page_key, remark, param_json, create_by, create_time
+        from sys_page
+    </sql>
+
+    <select id="selectPageList" parameterType="SysPage" resultMap="SysPageResult">
+        <include refid="selectPageVo"/>
+        <where>
+            <if test="pageId != null and pageId != ''">
+                AND page_id = #{pageId}
+            </if>
+            <if test="pageKey != null and pageKey != ''">
+                AND page_key like concat('%', #{pageKey}, '%')
+            </if>
+            <if test="remark != null and remark != ''">
+                AND remark like concat('%', #{remark}, '%')
+            </if>
+            <if test="createBy != null and createBy != ''">
+                AND create_by like concat('%', #{createBy}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+        order by page_id desc
+    </select>
+
+    <select id="selectAllList" parameterType="SysPage" resultMap="SysPageResult">
+        <include refid="selectPageVo"/>
+        order by page_id desc
+    </select>
+
+    <select id="selectPageByKey" parameterType="String" resultMap="SysPageResult">
+        <include refid="selectPageVo"/>
+        WHERE page_key=#{pageKey}
+    </select>
+
+    <select id="selectPageById" parameterType="Long" resultMap="SysPageResult">
+        <include refid="selectPageVo"/>
+        WHERE page_id=#{pageId}
+    </select>
+
+    <insert id="insertPage" parameterType="SysPage">
+        insert into sys_page (
+        <if test="pageKey != null and pageKey != '' ">page_key,</if>
+        <if test="remark != null and remark != '' ">remark,</if>
+        <if test="paramJson != null and paramJson != '' ">param_json,</if>
+        <if test="createBy != null and createBy != '' ">create_by,</if>
+        create_time
+        )values(
+        <if test="pageKey != null and pageKey != ''">#{pageKey},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        <if test="paramJson != null and paramJson != ''">#{paramJson},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        sysdate()
+        )
+    </insert>
+
+    <update id="updatePage" parameterType="SysPage">
+        update sys_page
+        <set>
+            <if test="pageKey != null and pageKey != ''">page_key = #{pageKey}</if>
+            <if test="paramJson != null">,param_json = #{paramJson}</if>
+            <if test="remark != null">,remark = #{remark}</if>
+        </set>
+        where page_id = #{pageId}
+    </update>
+
+    <delete id="deletePageById" parameterType="Long">
+        delete
+        from sys_page
+        where page_id = #{pageId}
+    </delete>
+
+    <delete id="deletePageByIds" parameterType="Long">
+        delete from sys_page where page_id in
+        <foreach collection="array" item="pageId" open="(" separator="," close=")">
+            #{pageId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <!-- 注释掉，采用POM设置-->
+    <!--<substitutionProperty name="log.base" value="../logs/tfs-boot" />-->
+    <substitutionProperty name="log.level" value="debug" />
+
+    <substitutionProperty name="max.size" value="100MB" />
+
+    <contextName>tfs-boot</contextName>
+    <jmxConfigurator />
+
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS}|%-5level|%thread|%X{smy.requestFlowNo}|%X{smy.consumerIp}|%logger{56}.%method\(\):%L - %msg%n</pattern>
+        </layout>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${consoleAppenderLevel}</level>
+        </filter>
+    </appender>
+
+    <appender name="file.all" class="ch.qos.logback.core.rolling.RollingFileAppender"><!-- All Log Info -->
+        <File>${log.base}/tfs-boot.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${log.base}/tfs-boot_all_%d{yyyy-MM-dd}.%i.log.zip</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${max.size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS}|%-5level|%thread|%X{smy.requestFlowNo}|%X{smy.consumerIp}|%logger{56}.%method\(\):%L - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+    <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+    <!-- 添加附加的appender,最多只能添加一个 -->
+    <appender name ="file.async" class= "ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>256</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref ="file.all"/>
+    </appender>
+
+    <appender name="file.error"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.base}/tfs-boot_err.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${log.base}/tfs-boot_err_%d{yyyy-MM-dd}.%i.log.zip</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${max.size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS}|%-5level|%thread|%X{smy.requestFlowNo}|%X{smy.consumerIp}|%logger{56}.%method\(\):%L - %msg%n</pattern>
+        </encoder>
+
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="file.info"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.base}/tfs-boot_info.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${log.base}/tfs-boot_info_%d{yyyy-MM-dd}.%i.log.zip</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${max.size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS}|%-5level|%thread|%X{smy.requestFlowNo}|%X{smy.consumerIp}|%logger{56}.%method\(\):%L - %msg%n</pattern>
+        </layout>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+
+    <appender name="file.sys"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.base}/tfs-boot_sys.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${log.base}/tfs-boot_sys_%d{yyyy-MM-dd}.%i.log.zip</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${max.size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS}|%-5level|%thread|%X{smy.requestFlowNo}|%X{smy.consumerIp}|%logger{56}.%method\(\):%L - %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <root level="${log.level}">
+        <appender-ref ref="stdout" />
+        <appender-ref ref="file.async" />
+        <appender-ref ref="file.error" />
+    </root>
+
+    <!-- 以下日志打印输出请自行关闭开户，但上线请统一处理 -->
+    <logger name="io.netty" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.apache.zookeeper" level="WARN"/>
+    <logger name="org.apache.dubbo" level="WARN"/>
+    <logger name="com.baomidou.mybatisplus" level="debug"/>
+    <logger name="springfox.documentation" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.mybatis" level="INFO"/>
+    <logger name="org.quartz" level="INFO"/>
+    <logger name="com.smy.bss" level="INFO"/>
+    <logger name="com.smy.tfs" level="debug"/>
+    <logger name="com.smy.framework" level="INFO"/>
+    <logger name="com.smy.scm" level="WARN"/>
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="io.lettuce.core" level="off" />
+    <logger name="org.apache.kafka" level="INFO" />
+    <logger name="org.springframework.kafka" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="file.async" />
+        <appender-ref ref="file.error" />
+        <appender-ref ref="stdout" />
+    </logger>
+
+</configuration>

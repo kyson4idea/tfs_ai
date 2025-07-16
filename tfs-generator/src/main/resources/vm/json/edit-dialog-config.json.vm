@@ -1,0 +1,46 @@
+{
+  "api": {
+    "add": {
+      "url": "/${moduleName}/${businessName}",
+      "method": "post"
+    },
+    "mod": {
+      "url": "/${moduleName}/${businessName}",
+      "method": "put"
+    }
+  },
+  "editFields": [
+      #foreach ($column in $columns)
+          #if ($column.insert || $column.edit)
+              #parse("vm/json/common.vm")
+            {
+              "key": "${fieldKey}",
+              "name": "${comment}",
+              "fieldType": "${fieldType}",
+              "valueOptions": [],
+                #if ($columnDictValue != "")
+                  "dict": "${columnDictValue}",
+                #end
+                #if ($column.htmlType == "datetime")
+                  "attr": ${attr},
+                #end
+              "isModifyHide": ${isModifyHide}
+            },
+          #end
+      #end
+  ],
+  "rules": {
+      #foreach ($column in $columns)
+          #if ($column.required)
+              #parse("vm/json/common.vm")
+            "${fieldKey}": [
+              {
+                "required": true,
+                "message": "${comment}不能为空",
+                "trigger": "blur"
+              }
+            ],
+          #end
+      #end
+  }
+}

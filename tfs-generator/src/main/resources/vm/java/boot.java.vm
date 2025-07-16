@@ -1,0 +1,22 @@
+package ${packageName};
+
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.ImportResource;
+
+/**
+ * ${projectName} Springboot 启动类
+ *
+ * @author ${author}
+ * @date ${datetime}
+ */
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, DruidDataSourceAutoConfigure.class})
+@ImportResource("classpath*:${dubboConfigPath}")
+public class ${appName}Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(${appName}Application.class, args);
+    }
+}

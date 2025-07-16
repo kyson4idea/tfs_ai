@@ -1,0 +1,5 @@
+{
+  "queryCardConfig": #parse("vm/json/query-card-config.json.vm"),
+  "tableCardConfig": #parse("vm/json/table-card-config.json.vm"),
+  "editDialogConfig": #parse("vm/json/edit-dialog-config.json.vm"),
+}

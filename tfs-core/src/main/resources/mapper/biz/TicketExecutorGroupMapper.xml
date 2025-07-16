@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketExecutorGroupMapper">
+
+    <select id="selectTicketExecutorGroupList" resultType="com.smy.tfs.api.dto.TicketExecutorGroupDto">
+        select teg.*, ta.app_name
+        from ticket_executor_group teg
+        left join ticket_app ta on teg.app_id = ta.id
+        <where>
+            teg.delete_time is null and ta.delete_time is null
+            <if test="ticketExecutorGroupDto.appId!=null and ticketExecutorGroupDto.appId!=''">
+                and teg.app_id = #{ticketExecutorGroupDto.appId}
+            </if>
+            <if test="ticketExecutorGroupDto.appIdList != null and ticketExecutorGroupDto.appIdList.size() > 0">
+                and teg.app_id in
+                <foreach collection="ticketExecutorGroupDto.appIdList" item="appId" open="(" separator="," close=")">
+                    #{appId}
+                </foreach>
+            </if>
+            <if test="ticketExecutorGroupDto.executorGroupName!=null and ticketExecutorGroupDto.executorGroupName!=''">
+                and teg.executor_group_name like concat('%', #{ticketExecutorGroupDto.executorGroupName}, '%')
+            </if>
+        </where>
+        order by teg.create_time desc
+    </select>
+</mapper>

@@ -1,0 +1,2 @@
+Application Version: ${tfs.version}
+Spring Boot Version: ${spring-boot.version}

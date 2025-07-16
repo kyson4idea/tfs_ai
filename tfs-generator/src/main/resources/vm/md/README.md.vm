@@ -1,0 +1,22 @@
+# 该项目为创建工单文档示例
+
+## 运行条件
+
+- 下载并解压示例项目代码;
+
+- 根据代码注释检查创建工单代码相关参数;
+
+- 执行构建及运行语句
+
+## 执行步骤
+
+下载的代码包，在根据自己需要更改代码中的参数，可以在**解压代码所在目录下**按如下的步骤执行
+
+- 所需运行环境：Java 8*
+
+```bash
+$ cd ${projectName}
+
+# 运行代码
+$ mvn clean install compile exec:java  -Dexec.mainClass="${packageName}.TfsClientApplication"
+```

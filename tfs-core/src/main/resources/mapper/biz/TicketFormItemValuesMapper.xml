@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketFormItemValuesMapper">
+
+    <select id="selectTicketFormItemValuesList" resultType="com.smy.tfs.api.dto.TicketDataListResponseDto">
+        select ticket_data_id as id,ticket_status,ticket_name,template_id,current_deal_users,ticket_finish_time,
+               create_time,apply_user,wx_chat_group_id,ticket_msg_arrive_type,update_time
+        from ticket_form_item_values  td
+        <include refid="Base_Select_List_Cust" />
+        order by td.create_time desc
+    </select>
+
+    <sql id="Base_Select_List_Cust">
+        <where>
+            td.delete_time IS NULL
+            <!-- 工单类型 -->
+            <if test="advancedQueryDto.templateId != null and advancedQueryDto.templateId != ''">
+                and td.template_id = #{advancedQueryDto.templateId}
+            </if>
+            <!-- 工单状态 -->
+            and td.ticket_status != 'INIT' <!-- 排除初始化工单 -->
+            <if test="advancedQueryDto.ticketStatusStr != null and advancedQueryDto.ticketStatusStr != ''">
+                and td.ticket_status = #{advancedQueryDto.ticketStatusStr}
+            </if>
+            <if test="advancedQueryDto.ticketStatusStrList != null and advancedQueryDto.ticketStatusStrList.size() > 0">
+                and td.ticket_status in
+                <foreach collection="advancedQueryDto.ticketStatusStrList" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <!-- 工单id/工单名称 -->
+            <if test="advancedQueryDto.searchValue != null and advancedQueryDto.searchValue != ''">
+                and (td.id like concat('%', #{advancedQueryDto.searchValue}, '%')
+                or td.ticket_name like concat('%', #{advancedQueryDto.searchValue}, '%'))
+            </if>
+
+            <!-- 我创建的 -->
+            <if test="advancedQueryDto.createByMe != null and advancedQueryDto.createByMe and
+                        advancedQueryDto.currentUserInfo != null and advancedQueryDto.currentUserInfo != ''">
+                and td.apply_user = concat('[', #{advancedQueryDto.currentUserInfo}, ']')
+            </if>
+            <!-- 与我处理相关的 -->
+            <if test="advancedQueryDto.needHandleByMe != null and advancedQueryDto.needHandleByMe and
+                        advancedQueryDto.currentUserInfo != null and advancedQueryDto.currentUserInfo != ''">
+                and (  td.current_deal_users like concat('%', #{advancedQueryDto.currentUserInfo}, '%')
+                or td.current_done_users like concat('%', #{advancedQueryDto.currentUserInfo}, '%')
+                or td.current_cc_users like concat('%', #{advancedQueryDto.currentUserInfo}, '%') )
+            </if>
+            <if test="advancedQueryDto.ticketStatusForUserStr != null and advancedQueryDto.ticketStatusForUserStr != '' and
+                      advancedQueryDto.currentUserInfo != null and advancedQueryDto.currentUserInfo != '' and
+                      advancedQueryDto.ticketStatusForUserStr == 'WAITING_HANDLE'">
+                and td.current_deal_users like concat('%', #{advancedQueryDto.currentUserInfo}, '%')
+            </if>
+            <if test="advancedQueryDto.ticketStatusForUserStr != null and advancedQueryDto.ticketStatusForUserStr != '' and
+                      advancedQueryDto.currentUserInfo != null and advancedQueryDto.currentUserInfo != '' and
+                      advancedQueryDto.ticketStatusForUserStr == 'HANDLED'">
+                and td.current_done_users like concat('%', #{advancedQueryDto.currentUserInfo}, '%')
+            </if>
+            <if test="advancedQueryDto.ticketStatusForUserStr != null and advancedQueryDto.ticketStatusForUserStr != '' and
+                      advancedQueryDto.currentUserInfo != null and advancedQueryDto.currentUserInfo != '' and
+                      advancedQueryDto.ticketStatusForUserStr == 'HAS_CC'">
+                and td.current_cc_users like concat('%', #{advancedQueryDto.currentUserInfo}, '%')
+            </if>
+            <if test="advancedQueryDto.generatedSql != null and advancedQueryDto.generatedSql != '' ">
+                and ${advancedQueryDto.generatedSql}
+            </if>
+        </where>
+    </sql>
+
+</mapper>

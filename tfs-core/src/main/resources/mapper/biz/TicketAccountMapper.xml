@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smy.tfs.biz.mapper.TicketAccountMapper">
+    <sql id="Base_Select_List_Column">
+        id, ticket_account_name, ticket_account_type, ticket_account_value, ticket_account_description,
+        create_by, create_time, update_by, update_time, delete_time
+    </sql>
+
+    <select id="selectTicketAccountList" resultType="com.smy.tfs.api.dto.TicketAccountDto">
+        select <include refid="Base_Select_List_Column" />
+        from ticket_account
+        <where>
+            <if test="ticketAccountDto.ticketAccountName != null and ticketAccountDto.ticketAccountName != ''">
+                and ticket_account_name like concat('%',#{ticketAccountDto.ticketAccountName},'%')
+            </if>
+            <if test="ticketAccountDto.ticketAccountType != null and ticketAccountDto.ticketAccountType != ''">
+                and ticket_account_type like concat('%',#{ticketAccountDto.ticketAccountType},'%')
+            </if>
+            <if test="ticketAccountDto.status != null and ticketAccountDto.status == 0">
+                and delete_time is null
+            </if>
+            <if test="ticketAccountDto.status != null and ticketAccountDto.status == 1">
+                and delete_time is not null
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+</mapper>
